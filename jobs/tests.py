@@ -92,14 +92,14 @@ class FreebaseTests(unittest.TestCase):
         l = Location(name="Stanford", freebase_id="/en/stanford")
         l.save()
         self.assertEqual(l.latitude, 37.4225)
-        self.assertEqual(l.longitude, -122.165277778)
+        self.assertAlmostEqual(l.longitude, -122.165277778, places=3)
 
     def test_freebase_values(self):
         l = Location(name="Stanford", freebase_id="/en/stanford")
         geos = l.freebase_values("/location/location/geolocation")
         self.assertEqual(len(geos), 1)
         g = geos[0]
-        self.assertEqual(g.text, "37.4225 - -122.165277778 - Freebase Geodata Team - Geocode")
+        self.assertEqual(g.text, u'37.4225 - -122.165278 - Freebase Geodata Team - Geocode')
         self.assertEqual(g.lang, "en")
         self.assertEqual(g.creator, "/user/merge_bot")
         self.assertEqual(g.value, None)
