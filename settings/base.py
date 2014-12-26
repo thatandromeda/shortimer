@@ -14,7 +14,8 @@ import os
 from django.core.exceptions import ImproperlyConfigured
 
 # Build paths inside the project like this: os.path.join(PROJECT_DIR, ...)
-PROJECT_DIR = os.path.dirname(os.path.abspath(__file__))
+SETTINGS_DIR = os.path.dirname(os.path.abspath(__file__))
+PROJECT_DIR = os.path.join(SETTINGS_DIR, '..')
 LOG_DIR = os.path.join(PROJECT_DIR, "logs")
 
 def get_env_requirement(var_name):
