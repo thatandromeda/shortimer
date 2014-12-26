@@ -272,7 +272,10 @@ class Employer(models.Model, FreebaseEntity):
     def load_freebase_data(self):
         values = self.freebase_values("/organization/organization/headquarters")
         values.extend(self.freebase_values("/location/location/street_address"))
-        self.description = self.freebase_value("/common/topic/description")
+        if hasattr(self, 'description'):
+            # Migration 0025 fails without this, since it calls
+            # load_freebase_data before the description field has been added.
+            self.description = self.freebase_value("/common/topic/description")
         for addr in values:
             city = addr.get_value("/location/mailing_address/citytown")
             state = addr.get_value("/location/mailing_address/state_province_region")
