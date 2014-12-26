@@ -36,7 +36,7 @@ def get_env_variable(var_name):
     try:
         return os.environ[var_name]
     except KeyError:
-        pass
+        return None
 
 
 ###############################################################################
@@ -285,7 +285,7 @@ GITHUB_API_SECRET = get_env_variable('GITHUB_API_SECRET')
 GOOGLE_CONSUMER_KEY = get_env_variable('GOOGLE_CONSUMER_KEY')
 GOOGLE_CONSUMER_SECRET = get_env_variable('GOOGLE_CONSUMER_SECRET')
 GOOGLE_DISPLAY_NAME = get_env_variable('GOOGLE_DISPLAY_NAME')
-GOOGLE_API_KEY = get_env_variable('GOOGLE_API_KEY') # for freebase suggest
+GOOGLE_API_KEY = get_env_requirement('GOOGLE_API_KEY') # for freebase suggest
 
 
 ###############################################################################
