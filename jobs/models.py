@@ -9,7 +9,6 @@ from django.db import models
 from django.conf import settings
 from django.core.mail import send_mail
 from django.contrib.auth.models import User
-from django.core.urlresolvers import reverse
 from django.db.models.signals import pre_save
 from django.db.models.signals import post_save
 from django.template.defaultfilters import slugify
@@ -23,10 +22,10 @@ import bitlyapi
 import html2text
 
 JOB_TYPES = (
-    (u'ft', 'full-time'), 
-    (u'pt', 'part-time'), 
+    (u'ft', 'full-time'),
+    (u'pt', 'part-time'),
     (u'co', 'contract'),
-    (u'tm', 'temporary'), 
+    (u'tm', 'temporary'),
     (u'in', 'internship'),
     (u'rp', 'rfp'),
     (u'ct', 'contest'),
@@ -39,15 +38,15 @@ clean_xml_utf8 = re.compile(r'[^\x09\x0A\x0D\x20-\xD7FF\xE000-\xFFFD\U10000-\U10
 
 class FreebaseValue(object):
 
-    @classmethod 
-    def make_values(klass, property_data, prop):
+    @classmethod
+    def make_values(cls, property_data, prop):
         values = []
         p = property_data.get(prop, {})
         valuetype = p.get("valuetype")
         for v in p.get("values", []):
             values.append(FreebaseValue(valuetype, v))
         return values
-   
+
     def __init__(self, valuetype, obj={}):
         self.valuetype = valuetype
         self.text = obj.get("text")
@@ -69,7 +68,7 @@ class FreebaseValue(object):
 class FreebaseEntity(object):
 
     def freebase_image_url(self):
-        url = "https://usercontent.googleapis.com/freebase/v1/image" 
+        url = "https://usercontent.googleapis.com/freebase/v1/image"
         url += self.freebase_id
         url += "?maxwidth=400&maxheight=200"
         return url
@@ -105,7 +104,7 @@ class FreebaseEntity(object):
         if len(values) > 0:
             return values[0].value
         return None
-        
+
     def freebase_rdf_url(self):
         id = self.freebase_id
         id = id.lstrip("/")
@@ -132,7 +131,9 @@ class Job(models.Model):
     employer = models.ForeignKey('Employer', related_name='jobs', null=True)
     creator = models.ForeignKey(User, related_name='jobs', null=True)
     published = models.DateTimeField(null=True)
-    published_by = models.ForeignKey(User, related_name='published_jobs', null=True)
+    published_by = models.ForeignKey(User,
+                                     related_name='published_jobs',
+                                     null=True)
     tweet_date = models.DateTimeField(null=True)
     page_views = models.IntegerField(null=True)
     location = models.ForeignKey('Location', related_name='jobs', null=True)
@@ -171,7 +172,7 @@ class Job(models.Model):
 
     def tweet(self):
         if self.tweet_date or not settings.CODE4LIB_TWITTER_OAUTH_CONSUMER_KEY:
-            return 
+            return
 
         url = self.short_url()
 
@@ -183,7 +184,7 @@ class Job(models.Model):
 
         # can't tweet if it won't fit
         if len(msg) > 140:
-            return 
+            return
 
         # tweet it
         auth = tweepy.OAuthHandler(settings.CODE4LIB_TWITTER_OAUTH_CONSUMER_KEY,
@@ -305,7 +306,7 @@ class Employer(models.Model, FreebaseEntity):
 
         for addr in values:
             city = addr.get_value("/location/mailing_address/citytown")
-            if city: 
+            if city:
                 try:
                     locs = Location.objects.filter(freebase_id=city.id)
                     if len(locs) > 0:
@@ -336,7 +337,7 @@ class Location(models.Model, FreebaseEntity):
 
     def save(self, *args, **kwargs):
         if not self.latitude:
-           self.load_freebase_data()
+            self.load_freebase_data()
         super(Location, self).save(*args, **kwargs)
 
     def load_freebase_data(self):
@@ -391,12 +392,12 @@ class UserProfile(models.Model):
     home_url = models.URLField(blank=True)
     twitter_id = models.CharField(max_length=100, blank=True)
     facebook_id = models.CharField(max_length=100, blank=True)
-    linkedin_id= models.CharField(max_length=100, blank=True)
+    linkedin_id = models.CharField(max_length=100, blank=True)
     github_id = models.CharField(max_length=100, blank=True)
 
     def linked_providers(self):
         return [s.provider for s in self.user.social_auth.all()]
-    
+
     def unlinked_providers(self):
         providers = set(["twitter", "facebook", "github", "linkedin", "google"])
         linked = set(self.linked_providers())

@@ -1,23 +1,20 @@
 import re
 import json
-import smtplib
 import datetime
 
-from django.http import Http404
+from django.http import Http404, HttpResponseGone, HttpResponse
 from django.contrib import auth
 from django.conf import settings
 from django.db.models import Count
 from django.contrib.auth import logout
-from django.core.mail import send_mail
 from django.template import RequestContext
 from django.core.paginator import EmptyPage
-from django.core.paginator import Paginator
 from django.core.urlresolvers import reverse
 from django.template.defaultfilters import slugify
 from django.views.decorators.cache import cache_control
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse, HttpResponseGone, HttpResponseNotFound
-from django.shortcuts import render, render_to_response, get_object_or_404, redirect
+from django.shortcuts import (render, render_to_response,
+                              get_object_or_404, redirect)
 
 
 from shortimer.jobs import models
@@ -31,24 +28,27 @@ def about(request):
 def login(request):
     if request.user.is_authenticated():
         logout(request)
-    next = request.GET.get('next', '')
-    return render(request, 'login.html', {'next': next})
+    next_page = request.GET.get('next', '')
+    return render(request, 'login.html', {'next': next_page})
 
 def logout(request):
     auth.logout(request)
     return redirect('/')
 
 def jobs(request, subject_slug=None):
-    jobs = models.Job.objects.filter(published__isnull=False, deleted__isnull=True)
-    jobs = jobs.order_by('-published')
+    jobs_list = models.Job.objects.filter(
+                    published__isnull=False, deleted__isnull=True
+                )
+    jobs_list = jobs_list.order_by('-published')
 
     # filter by subject if we were given one
     if subject_slug:
         subject = get_object_or_404(models.Subject, slug=subject_slug)
-        jobs = jobs.filter(subjects__in=[subject])
-        feed_url = "http://" + request.META['HTTP_HOST'] + reverse('feed_tag', args=[subject.slug])
+        jobs_list = jobs_list.filter(subjects__in=[subject])
+        feed_url = "http://" + request.META['HTTP_HOST'] + \
+                   reverse('feed_tag', args=[subject.slug])
         feed_title = 'code4lib jobs feed - %s' % subject.name
-    else: 
+    else:
         feed_url = "http://" + request.META['HTTP_HOST'] + reverse('feed')
         feed_title = 'code4lib jobs feed'
         subject = None
@@ -57,51 +57,49 @@ def jobs(request, subject_slug=None):
     try:
         page = paginator.page(request.GET.get("page", 1))
     except EmptyPage:
-        raise Http404 
+        raise Http404
 
     context = {
         'jobs': page.object_list,
         'page': page,
         'paginator': paginator,
         'subject': subject,
-        'feed_url': feed_url, 
+        'feed_url': feed_url,
         'feed_title': feed_title
     }
     return render(request, 'jobs.html', context)
 
 def feed(request, tag=None, page=1):
-    jobs = models.Job.objects.filter(published__isnull=False, deleted__isnull=True)
-    title = "code4lib jobs feed"
-    feed_url = "http://" + request.META['HTTP_HOST'] + reverse('feed')
+    jobs_list = models.Job.objects.filter(
+                    published__isnull=False, deleted__isnull=True
+                )
     subject = None
     if tag:
         subject = get_object_or_404(models.Subject, slug=tag)
-        jobs = jobs.filter(subjects__in=[subject])
-        title = "code4lib jobs feed - %s" % subject.name 
-        feed_url = "http://" + request.META['HTTP_HOST'] + reverse('feed_tag', args=[tag])
+        jobs_list = jobs_list.filter(subjects__in=[subject])
 
-    jobs = jobs.order_by('-published')
+    jobs_list = jobs_list.order_by('-published')
     if jobs.count() == 0: raise Http404
     updated = jobs[0].updated
 
     paginator = DiggPaginator(jobs, 50, body=8)
-    try: 
+    try:
         page = paginator.page(page)
     except EmptyPage:
         raise Http404
 
-    return render_to_response('feed.xml', 
+    return render_to_response('feed.xml',
                               {
                                   "subject": subject,
-                                  "page": page, 
-                                  "updated": updated, 
-                              }, 
+                                  "page": page,
+                                  "updated": updated,
+                              },
                               mimetype="application/atom+xml",
                               context_instance=RequestContext(request))
 
 def job(request, id):
     j = get_object_or_404(models.Job, id=id)
-    if j.deleted: 
+    if j.deleted:
         return HttpResponseGone("Sorry, this job has been deleted.")
     return render(request, "job.html", {"job": j})
 
@@ -115,9 +113,9 @@ def job_edit(request, id=None):
     can_edit_description = _can_edit_description(request.user, j)
 
     if request.method == "GET":
-        context = {"job": j, 
+        context = {"job": j,
                    "curate_next": request.path == "/curate/employers/",
-                   "can_edit_description": can_edit_description, 
+                   "can_edit_description": can_edit_description,
                    "error": request.session.pop("error", None),
                    "job_types": models.JOB_TYPES,
                    "google_api_key": settings.GOOGLE_API_KEY}
@@ -162,7 +160,7 @@ def _update_job(j, form, user):
     # set employer: when an employer is first added this save triggers
     # a lookup to Freebase to get hq address information
     if form.get("employer", None):
-        e, created = models.Employer.objects.get_or_create(
+        e, _ = models.Employer.objects.get_or_create(
             name=form.get("employer"),
             freebase_id=form.get("employer_freebase_id"))
         j.employer = e
@@ -170,7 +168,7 @@ def _update_job(j, form, user):
     # set location: when a location is first added this save triggers
     # a lookup to Freebase to get geo-coordinates
     if form.get("location", None):
-        l, created = models.Location.objects.get_or_create(
+        l, _ = models.Location.objects.get_or_create(
             name=form.get("location"),
             freebase_id=form.get("location_freebase_id"))
         j.location = l
@@ -217,7 +215,7 @@ def users(request):
 
     paginator = DiggPaginator(users, 25, body=8)
     page = paginator.page(request.GET.get("page", 1))
-    return render(request, "users.html", 
+    return render(request, "users.html",
             {"paginator": paginator, "page": page})
 
 @login_required
@@ -240,7 +238,9 @@ def profile(request):
 def matcher(request):
     keywords = models.Keyword.objects.all()
     keywords = keywords.annotate(num_jobs=Count("jobs"))
-    keywords = keywords.filter(num_jobs__gt=2, ignore=False, subject__isnull=True)
+    keywords = keywords.filter(num_jobs__gt=2,
+                               ignore=False,
+                               subject__isnull=True)
     keywords = keywords.order_by("-num_jobs")
 
     paginator = DiggPaginator(keywords, 25, body=8)
@@ -270,7 +270,7 @@ def keyword(request, id):
 def tags(request):
     # add a new subject
     if request.method == "POST":
-        s, created = models.Subject.objects.get_or_create(
+        s, _ = models.Subject.objects.get_or_create(
             name=request.POST.get('subjectName'))
         s.type=request.POST.get('subjectTypeName')
         s.freebase_id=request.POST.get('subjectId')
@@ -311,8 +311,10 @@ def employer(request, employer_slug):
     return render(request, "employer.html", {"employer": employer})
 
 def curate(request):
-    need_employer = models.Job.objects.filter(employer__isnull=True, deleted__isnull=True).count()
-    need_publish = models.Job.objects.filter(published__isnull=True, deleted__isnull=True).count()
+    need_employer = models.Job.objects.filter(employer__isnull=True,
+                                              deleted__isnull=True).count()
+    need_publish = models.Job.objects.filter(published__isnull=True,
+                                             deleted__isnull=True).count()
     return render(request, "curate.html", {"need_employer": need_employer,
                                            "need_publish": need_publish})
 
@@ -348,28 +350,34 @@ def reports(request):
     w = now - datetime.timedelta(days=7)
     y = now - datetime.timedelta(days=365)
 
-    hotjobs_m = models.Job.objects.filter(post_date__gte=m, deleted__isnull=True)
+    hotjobs_m = models.Job.objects.filter(post_date__gte=m,
+                                          deleted__isnull=True)
     hotjobs_m = hotjobs_m.order_by('-page_views')[0:10]
 
-    hotjobs_w = models.Job.objects.filter(post_date__gte=w, deleted__isnull=True)
+    hotjobs_w = models.Job.objects.filter(post_date__gte=w,
+                                          deleted__isnull=True)
     hotjobs_w = hotjobs_w.order_by('-page_views')[0:10]
 
-    subjects_m = models.Subject.objects.filter(jobs__post_date__gte=m, jobs__deleted__isnull=True)
+    subjects_m = models.Subject.objects.filter(jobs__post_date__gte=m,
+                                               jobs__deleted__isnull=True)
     subjects_m = subjects_m.annotate(num_jobs=Count("jobs"))
     subjects_m = subjects_m.order_by("-num_jobs")
     subjects_m = subjects_m[0:10]
 
-    subjects_y = models.Subject.objects.filter(jobs__post_date__gte=y, jobs__deleted__isnull=True)
+    subjects_y = models.Subject.objects.filter(jobs__post_date__gte=y,
+                                               jobs__deleted__isnull=True)
     subjects_y = subjects_y.annotate(num_jobs=Count("jobs"))
     subjects_y = subjects_y.order_by("-num_jobs")
     subjects_y = subjects_y[0:10]
 
-    employers_m = models.Employer.objects.filter(jobs__post_date__gte=m, jobs__deleted__isnull=True)
+    employers_m = models.Employer.objects.filter(jobs__post_date__gte=m,
+                                                 jobs__deleted__isnull=True)
     employers_m = employers_m.annotate(num_jobs=Count("jobs"))
     employers_m = employers_m.order_by("-num_jobs")
     employers_m = employers_m[0:10]
 
-    employers_y = models.Employer.objects.filter(jobs__post_date__gte=y, jobs__deleted__isnull=True)
+    employers_y = models.Employer.objects.filter(jobs__post_date__gte=y,
+                                                 jobs__deleted__isnull=True)
     employers_y = employers_y.annotate(num_jobs=Count("jobs"))
     employers_y = employers_y.order_by("-num_jobs")
     employers_y = employers_y[0:10]
@@ -415,8 +423,8 @@ def recent_jobs(request):
     return HttpResponse(json.dumps(result), mimetype="application/json")
 
 def _can_edit_description(user, job):
-    # only staff or the creator of a job posting can edit the text of the 
-    # job description once it is posted
+    # Only staff or the creator of a job posting can edit the text of the
+    # job description once it is posted.
     if user.is_staff:
         return True
     elif job.creator == user:
@@ -438,7 +446,9 @@ def map_data(request):
         "features": [
         ]
     }
-    for j in models.Job.objects.filter(location__latitude__isnull=False, location__longitude__isnull=False, post_date__isnull=False):
+    for j in models.Job.objects.filter(location__latitude__isnull=False,
+                                       location__longitude__isnull=False,
+                                       post_date__isnull=False):
         feature = {
             "id": _add_host(request, j.get_absolute_url()),
             "type": "Feature",
@@ -462,4 +472,3 @@ def search(request):
 
 def _add_host(request, url):
     return 'http://' + request.META['HTTP_HOST'] + url
-
