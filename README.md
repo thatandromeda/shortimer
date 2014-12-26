@@ -26,12 +26,15 @@ using.
 1. `virtualenv --no-site-packages ENV`
 1. `source ENV/bin/activate`
 1. Set up your settings file (see `settings/README.md` for details)
+1. In your python shell: `import nltk`, then `nltk.download()` (this will open up a new GUI window outside your shell). Download Models > maxent_treebank_pos_tagger
+1. Acquire a Google public API key and turn on the Freebase API for your Google account. (The specifics of how to do this change on Google's whim, so Googling for them is your best bet.)
 
 ### Steps you do the first time and every time things may have changed
 1. `pip install -r requirements.txt`
 1. `export DJANGO_SETTINGS_MODULE=shortimer.settings.dev.yoursettingsmodule` 
 1. In order for people to login with their github, facebook, twitter, linkedin
 credentials you will need to create applications on those sites, and set their oauth keys as environment variables with the names referenced in settings/base.py. For development you can probably get by with just one login provider.
+1. Set the GOOGLE_API_KEY environment variable (this enables Freebase to work).
 1. `python manage.py syncdb --migrate --noinput`
 1. `python manage.py runserver`
 1. Point your web browser at http://locahost:8000 .
