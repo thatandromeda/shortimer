@@ -77,6 +77,8 @@ class FreebaseEntity(object):
         return "http://www.freebase.com/view" + self.freebase_id
 
     def freebase_json_url(self):
+        if not settings.GOOGLE_API_KEY:
+            return self.freebase_json_url_no_key()
         return "https://www.googleapis.com/freebase/v1/topic" + self.freebase_id + "?key=" + settings.GOOGLE_API_KEY
 
     def freebase_json_url_no_key(self):
@@ -307,11 +309,10 @@ class Employer(models.Model, FreebaseEntity):
         for addr in values:
             city = addr.get_value("/location/mailing_address/citytown")
             if city:
-                try:
-                    locs = Location.objects.filter(freebase_id=city.id)
-                    if len(locs) > 0:
-                        return locs[0]
-                except Location.DoesNotExist:
+                locs = Location.objects.filter(freebase_id=city.id)
+                if locs.count() > 0:
+                    return locs[0]
+                else:
                     l = Location()
                     l.name = city.text
                     l.freebase_id = city.id
