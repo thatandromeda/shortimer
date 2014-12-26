@@ -19,19 +19,25 @@ get virtualenv installed using other packages managers (homebrew, rpm, etc).
 From there on things should work independent of what operating system you are
 using.
 
+### Steps you do only the first time you set up the project
 1. `sudo apt-get install python-virtualenv mysql-server libmysqlclient-dev`
 1. `git clone git://github.com/code4lib/shortimer.git`
 1. `cd shortimer`
 1. `virtualenv --no-site-packages ENV`
 1. `source ENV/bin/activate`
+1. Set up your settings file (see `settings/README.md` for details)
+
+### Steps you do the first time and every time things may have changed
 1. `pip install -r requirements.txt`
-1. `cp settings.py.template settings.py`
-1. in order for people to login with their github, facebook, twitter, linkedin
-credentials you will need to create applications on those sites, and fill in oauth keys in your settings.py. For development you can probably get by with just one login provider.
+1. `export DJANGO_SETTINGS_MODULE=shortimer.settings.dev.yoursettingsmodule` 
+1. In order for people to login with their github, facebook, twitter, linkedin
+credentials you will need to create applications on those sites, and set their oauth keys as environment variables with the names referenced in settings/base.py. For development you can probably get by with just one login provider.
 1. `python manage.py syncdb --migrate --noinput`
 1. `python manage.py runserver`
-1. point web browser at http://locahost:8000
-1. if you are doing development and want a snapshot of the db just ask
+1. Point your web browser at http://locahost:8000 .
+1. If you are doing development and want a snapshot of the db just ask edsu.
+
+If you install virtualenvwrapper on top of virtualenv, you can set all the environment variables in `~/.virtualenvs/customfit/bin/postactivate` the first time you set up the project, and you won't need to do those steps again.
 
 Ideas
 -----
