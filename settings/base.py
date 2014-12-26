@@ -143,7 +143,11 @@ TIME_ZONE = 'America/Chicago'
 USE_I18N = True
 USE_L10N = False
 DATETIME_FORMAT = 'Y-m-d H:i:s T'
-USE_TZ = True
+
+# This was unset in a prior version of shortimer. That version of Django
+# defaulted USE_TZ to False; we're setting it here because explicit is
+# better than implicit.
+USE_TZ = False
 
 
 ###############################################################################
