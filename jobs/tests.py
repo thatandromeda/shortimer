@@ -1,7 +1,4 @@
-import sys
 import email
-import json
-import logging
 import unittest
 
 from jobs.models import Employer, Job, Keyword, Subject, Location
@@ -144,6 +141,3 @@ class FreebaseTests(unittest.TestCase):
         s.save()
         self.assertEqual(s.name, 'PHP')
         self.assertTrue(s.description.startswith('PHP is a server-side'))
-
-
-
