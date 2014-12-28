@@ -77,6 +77,9 @@ JOB_FEEDS = [
     'http://pipes.yahoo.com/arljobstorss/c8f6fa1c3aa9c60d39bc01a35e899fa5?_render=rss'
 ]
 
+CRISPY_TEMPLATE_PACK = 'bootstrap'
+
+
 ###############################################################################
 #
 # Application definition
@@ -95,6 +98,7 @@ INSTALLED_APPS = (
     'django.contrib.humanize',
     'social_auth',
     'south',
+    'crispy_forms',
     'shortimer.jobs',
 )
 
@@ -186,7 +190,6 @@ ADMIN_MEDIA_PREFIX = '/static/admin/'
 TEMPLATE_LOADERS = (
     'django.template.loaders.filesystem.Loader',
     'django.template.loaders.app_directories.Loader',
-#     'django.template.loaders.eggs.Loader',
 )
 
 TEMPLATE_DIRS = (

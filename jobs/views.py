@@ -2,22 +2,24 @@ import re
 import json
 import datetime
 
-from django.http import Http404, HttpResponseGone, HttpResponse
-from django.contrib import auth
 from django.conf import settings
-from django.db.models import Count
-from django.contrib.auth import logout
-from django.template import RequestContext
+from django.contrib import auth
+from django.contrib.auth.decorators import login_required
 from django.core.paginator import EmptyPage
 from django.core.urlresolvers import reverse
-from django.template.defaultfilters import slugify
-from django.views.decorators.cache import cache_control
-from django.contrib.auth.decorators import login_required
+from django.db.models import Count
+from django.http import Http404, HttpResponseGone, HttpResponse
 from django.shortcuts import (render, render_to_response,
                               get_object_or_404, redirect)
+from django.template import RequestContext
+from django.template.defaultfilters import slugify
+from django.views.decorators.cache import cache_control
+from django.views.generic.edit import UpdateView
 
+from braces.views import LoginRequiredMixin
 
 from shortimer.jobs import models
+from shortimer.jobs.forms import ProfileUpdateForm
 from shortimer.miner import autotag
 from shortimer.paginator import DiggPaginator
 from shortimer.jobs.decorators import AllowJSONPCallback
@@ -27,7 +29,7 @@ def about(request):
 
 def login(request):
     if request.user.is_authenticated():
-        logout(request)
+        auth.logout(request)
     next_page = request.GET.get('next', '')
     return render(request, 'login.html', {'next': next_page})
 
@@ -218,22 +220,22 @@ def users(request):
     return render(request, "users.html",
             {"paginator": paginator, "page": page})
 
-@login_required
-def profile(request):
-    user = request.user
-    profile = user.profile
+class ProfileUpdateView(LoginRequiredMixin, UpdateView):
+    template_name = 'profile.html'
+    form_class = ProfileUpdateForm
 
-    if request.method == "POST":
-        user.username = request.POST.get("username", user.username)
-        user.first_name = request.POST.get("first_name")
-        user.last_name = request.POST.get("last_name")
-        user.email = request.POST.get("email")
-        user.profile.home_url = request.POST.get("home_url")
-        user.save()
+    def get_object(self):
+        return self.request.user # this is safe because of LoginRequiredMixin
+
+    def get_success_url(self):
+        return reverse('user', args=[self.request.user.username])
+
+    def form_valid(self, form):
+        user = self.get_object()
+        user.profile.home_url = form.cleaned_data['home_url']
         user.profile.save()
-        return redirect(reverse('user', args=[user.username]))
+        return super(ProfileUpdateView, self).form_valid(form)
 
-    return render(request, "profile.html", {"user": user, "profile": profile})
 
 def matcher(request):
     keywords = models.Keyword.objects.all()

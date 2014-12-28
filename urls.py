@@ -1,7 +1,11 @@
-from django.views.generic import TemplateView
 from django.conf.urls.defaults import patterns, include, url
+from django.contrib import admin
+from django.views.generic import TemplateView
 
+from shortimer.jobs.views import ProfileUpdateView
 from shortimer.jobs.sitemap import JobSitemap
+
+admin.autodiscover()
 
 urlpatterns = patterns('shortimer.jobs.views',
     url(r'^$', 'jobs', name='home'),
@@ -23,7 +27,6 @@ urlpatterns = patterns('shortimer.jobs.views',
     url(r'^login/$', 'login', name='login'),
     url(r'^logout/$', 'logout', name='logout'),
     url(r'^user/(?P<username>.+)/$', 'user', name='user'),
-    url(r'^profile/$', 'profile', name='profile'),
     url(r'^users/$', 'users', name='users'),
     url(r'^reports/$', 'reports', name='reports'),
     url(r'^curate/$', 'curate', name='curate'),
@@ -35,8 +38,12 @@ urlpatterns = patterns('shortimer.jobs.views',
     url(r'^api/v1/map$', 'map_data', name='map_data'),
     url(r'^search/$', 'search', name='search'),
     url(r'', include('social_auth.urls')),
+    url(r'^admin/', include(admin.site.urls)),
 )
 
+urlpatterns += patterns('',
+    url(r'^profile/$', ProfileUpdateView.as_view(), name='profile'),
+)
 sitemaps = {'jobs': JobSitemap}
 urlpatterns += patterns('',
     url(r'^robots\.txt$', TemplateView.as_view(template_name='robots.txt', content_type='text/plain')),

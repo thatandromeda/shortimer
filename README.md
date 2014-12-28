@@ -34,13 +34,24 @@ using.
 1. `export DJANGO_SETTINGS_MODULE=shortimer.settings.dev.yoursettingsmodule` 
 1. In order for people to login with their github, facebook, twitter, linkedin
 credentials you will need to create applications on those sites, and set their oauth keys as environment variables with the names referenced in settings/base.py. For development you can probably get by with just one login provider.
-1. Set the GOOGLE_API_KEY environment variable (this enables Freebase to work).
+1. Set the `GOOGLE_API_KEY` environment variable (this enables Freebase to work, which is required for some tests and functionality).
 1. `python manage.py syncdb --migrate --noinput`
 1. `python manage.py runserver`
 1. Point your web browser at http://locahost:8000 .
 1. If you are doing development and want a snapshot of the db just ask edsu.
 
 If you install virtualenvwrapper on top of virtualenv, you can set all the environment variables in `~/.virtualenvs/customfit/bin/postactivate` the first time you set up the project, and you won't need to do those steps again.
+
+### If you want to develop on localhost without setting up socialauth login providers
+1. `python manage.py createsuperuser` and follow the prompts
+1. Add the following to your personal settings file:
+'''
+AUTHENTICATION_BACKENDS += (
+'django.contrib.auth.backends.ModelBackend',
+)
+'''
+
+Your superuser can now log in at `/admin`.
 
 Ideas
 -----
