@@ -133,7 +133,7 @@ class FreebaseTests(unittest.TestCase):
         self.assertTrue(l)
         self.assertEqual(l.name, "London")
         l.save()
-        self.assertEqual(l.longitude, -0.106196)
+        self.assertEqual(l.longitude, -0.1275)
         self.assertEqual(l.latitude, 51.517124)
 
     def test_subject(self):
