@@ -77,7 +77,6 @@ JOB_FEEDS = [
     'http://pipes.yahoo.com/arljobstorss/c8f6fa1c3aa9c60d39bc01a35e899fa5?_render=rss'
 ]
 
-
 ###############################################################################
 #
 # Application definition
@@ -325,4 +324,23 @@ EMAIL_HOST_USER = 'jobs4lib@gmail.com'
 EMAIL_HOST_PASSWORD = get_env_variable('EMAIL_HOST_PASSWORD')
 EMAIL_USE_TLS = True
 EMAIL_ANNOUNCE = ['you@example.com', 'me@example.com']
+
+###############################################################################
+#
+# Nose settings
+#
+###############################################################################
+
+INSTALLED_APPS += ('django_nose',) # must come after south
+
+TEST_RUNNER = 'django_nose.NoseTestSuiteRunner'
+
+NOSE_ARGS = [
+             '--with-coverage',
+             '--cover-package=jobs',
+             '--nocapture',
+             '--nologcapture',
+             '--logging-format=%(module)s %(levelname)s %(lineno)s: %(message)s',
+             ]
+
 
