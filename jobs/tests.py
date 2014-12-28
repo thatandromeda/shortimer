@@ -68,14 +68,14 @@ class FreebaseTests(unittest.TestCase):
         self.assertEqual(e.state, 'California')
         self.assertEqual(e.country, 'United States of America')
         self.assertEqual(e.postal_code, '94305')
-        self.assertTrue('American private research university located in Stanford' in e.description)
+        self.assertTrue('private research university in Stanford' in e.description)
 
         e = Employer(name="University of Chicago",
                      freebase_id="/en/university_of_chicago")
         e.save()
         self.assertEqual(e.city, 'Chicago')
         self.assertEqual(e.state, 'Illinois')
-        self.assertEqual(e.country, '')
+        self.assertEqual(e.country, 'United States of America')
         self.assertEqual(e.postal_code, '60637')
 
     def test_employer_save_no_freebase_id(self):
