@@ -134,7 +134,7 @@ class FreebaseTests(unittest.TestCase):
         self.assertEqual(l.name, "London")
         l.save()
         self.assertEqual(l.longitude, -0.1275)
-        self.assertEqual(l.latitude, 51.517124)
+        self.assertAlmostEqual(l.latitude, 51.507222, places=3)
 
     def test_subject(self):
         s = Subject(name="PHP", freebase_id="/en/php")
