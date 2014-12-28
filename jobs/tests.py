@@ -1,6 +1,8 @@
 import email
 import unittest
 
+from django.conf import settings
+
 from jobs.models import Employer, Job, Keyword, Subject, Location
 
 import miner
@@ -58,7 +60,8 @@ class FreebaseTests(unittest.TestCase):
 
     def test_get_json_url(self):
         emp = Employer.objects.get(pk=1)
-        self.assertTrue("https://www.googleapis.com/freebase/v1/topic/en/stanford_university?key=AIzaSyBE36z7o6NUafIWcLEB8yk2I47-8_5y1_0" in emp.freebase_json_url())
+        url = 'https://www.googleapis.com/freebase/v1/topic/en/stanford_university?key=%s' % settings.GOOGLE_API_KEY
+        self.assertTrue(url in emp.freebase_json_url())
 
     def test_employer_save(self):
         e = Employer(name="Stanford University",
